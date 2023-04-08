@@ -1,10 +1,9 @@
 const express = require('express');
 const fs = require('fs');
 const lockfile = require('proper-lockfile');
-const { DataFileIO,getDataFromCourtWebsite } = require('./scrapData');
+const { getDataFromCourtWebsite,DataBaseIO } = require('./scrapData');
 
 const app = express();
-const filePath = 'data.json';
 
 app.get("/", (req, res) => {
 	res.send("Hello World!");
@@ -13,8 +12,7 @@ app.get("/", (req, res) => {
 // Endpoint to read data
 app.get('/data', async (req, res) => {
 	try {
-		var dataFileIO = new DataFileIO();
-		var data = await dataFileIO.readData();
+		const data = await (new DataBaseIO()).readData();
 		res.json(data);
 	} catch (err) {
 		console.error(err);

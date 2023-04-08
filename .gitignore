@@ -1,1 +1,6 @@
 package-lock.json
+node_modules
+play-data.json
+screenshots/*
+migrations
+.env

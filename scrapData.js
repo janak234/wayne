@@ -2,24 +2,105 @@ const puppeteer = require('puppeteer');
 const cheerio = require('cheerio');
 const fs = require('fs');
 const lockfile = require('proper-lockfile');
+const { PrismaClient } = require('@prisma/client')
 
+class DataBaseIO {
 
-class DataFileIO {
     constructor() {
-        this.filePath = 'data.json';
+        this.prisma = new PrismaClient();
     }
 
     async readData() {
-        const release = await lockfile.lock(this.filePath);
-        const data = JSON.parse(fs.readFileSync(this.filePath));
-        release();
+        const data = await this.prisma.court.findMany({
+            include: {
+                civilListing: true,
+                criminalListing: true,
+            }
+        });
         return data;
     }
 
+    async addCriminalRecords(criminalListing, court) {
+        // Loop through each criminal listing for this court type and create it in the database
+        criminalListing.forEach(async (criminalListing, i) => {
+            await this.prisma.criminalListing.create({
+                data: {
+                    time: criminalListing.time,
+                    name: criminalListing.name,
+                    floorCourt: criminalListing.floorCourt,
+                    court: {
+                        connect: { id: court.id },
+                    },
+                },
+            })
+        });
+    }
+
+    async addCivilRecords(civilListings, court) {
+        // Loop through each civil listing for this court type and create it in the database
+
+        civilListings.forEach(async (civilListing, i) => {
+            await this.prisma.civilListing.create({
+                data: {
+                    time: civilListing.time,
+                    matterTitle: civilListing.matterTitle,
+                    matterNo: civilListing.matterNo,
+                    floorCourt: civilListing.floorCourt,
+                    court: {
+                        connect: { id: court.id },
+                    },
+                },
+            })
+        });
+    }
+
+    async upsertCourt(courtName, buildingName, address) {
+        // Try to find a court in the database with the same name and building name
+        let existingCourt = await this.prisma.court.findFirst({
+            where: {
+                name: courtName,
+                buildingName: buildingName,
+            }
+        })
+
+        // If a court with this name and building name does not already exist in the database, create it
+        if (!existingCourt) {
+            existingCourt = await this.prisma.court.create({
+                data: {
+                    name: courtName,
+                    buildingName: buildingName,
+                    address: address,
+                },
+            })
+        }
+
+        return existingCourt
+    }
+
     async writeData(data) {
-        const release = await lockfile.lock(this.filePath);
-        fs.writeFileSync(this.filePath, JSON.stringify(data));
-        release();
+
+        await this.prisma.court.deleteMany({});
+
+        // Loop through each court type in the data object
+        for (const courtName in data) {
+            if (data.hasOwnProperty(courtName)) {
+                const courtBuildings = data[courtName]
+
+                courtBuildings.forEach(async (building, i) => {
+                    const buildingName = building.buildingName;
+                    const address = building.address;
+                    const civilListing = building.civilListing;
+                    const criminalListing = building.criminalListing;
+
+                    // Upsert the court into the database
+                    const court = await this.upsertCourt(courtName, buildingName, address);
+
+                    await this.addCivilRecords(civilListing, court);
+
+                    await this.addCriminalRecords(criminalListing, court);
+                });
+            }
+        }
     }
 }
 
@@ -71,7 +152,7 @@ class CourtListingPage {
         this.criminalTable = ".criminal-table";
         this.civilTable = ".civil-table";
 
-        this.dataFileIO = new DataFileIO();
+        this.databaseIO = new DataBaseIO();
     }
 
     async visit() {
@@ -151,7 +232,7 @@ class CourtListingPage {
         // await this.visit();
         try {
             var data = await this.getListing();
-            await this.dataFileIO.writeData(data);
+            await this.databaseIO.writeData(data);
         } catch (error) {
             console.log(error);
         }
@@ -178,4 +259,4 @@ async function getDataFromCourtWebsite() {
     await browser.close();
 }
 
-module.exports = {getDataFromCourtWebsite,DataFileIO};
+module.exports = { getDataFromCourtWebsite,DataBaseIO };

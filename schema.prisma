@@ -1,0 +1,38 @@
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Court {
+  id              Int               @id @default(autoincrement())
+  name            String
+  buildingName    String
+  address         String
+  civilListing    CivilListing[] 
+  criminalListing CriminalListing[]
+}
+
+model CivilListing {
+  id          Int      @id @default(autoincrement())
+  time        String
+  matterTitle String
+  matterNo    String
+  floorCourt  String
+  createdAt   DateTime @default(now())
+  courtId     Int
+  court       Court    @relation(fields: [courtId], references: [id], onDelete: Cascade)
+}
+
+model CriminalListing {
+  id         Int      @id @default(autoincrement())
+  time       String
+  name       String
+  floorCourt String
+  createdAt  DateTime @default(now())
+  courtId    Int
+  court      Court    @relation(fields: [courtId], references: [id],  onDelete: Cascade)
+}
