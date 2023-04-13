@@ -29,7 +29,7 @@ app.post('/data', async (req, res) => {
 		res.status(200).send('Wait for 3 minutes to get the data');
 	} catch (err) {
 		console.error(err);
-		res.status(500).send('Error writing data.');
+		res.status(500).send(err.message);
 	}
 });
 
