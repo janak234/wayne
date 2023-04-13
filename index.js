@@ -16,7 +16,7 @@ app.get('/data', async (req, res) => {
 		res.json(data);
 	} catch (err) {
 		console.error(err);
-		res.status(500).send('Error reading data.');
+		res.status(500).send(err.message);
 	}
 });
 
