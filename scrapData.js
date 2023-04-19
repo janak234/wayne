@@ -242,7 +242,7 @@ async function getDataFromCourtWebsite() {
     var browser;
 
     if(process.env.NODE_ENV === 'production') {
-        browser = puppeteer.launch({executablePath: '/usr/bin/chromium-browser'});
+        browser = await puppeteer.launch({executablePath: '/usr/bin/chromium-browser'});
     }else {
         browser = await puppeteer.launch({ headless: true });
     }
