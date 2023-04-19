@@ -112,8 +112,11 @@ class TermsAndConditionPage {
     async acceptTermsAndConditions() {
         // Get checkbox using a selector
         await (await this.page.$(this.checkbox)).click();
+
         // take screenshot
-        await this.page.screenshot({ path: 'screenshots/checkbox.png' });
+        if (process.env.NODE_ENV == "development") {
+            await this.page.screenshot({ path: 'screenshots/checkbox.png' });
+        }
     }
 
     async submit() {
@@ -151,7 +154,9 @@ class CourtListingPage {
         await this.page.goto(this.url, { timeout: 0, waitUntil: 'load' });
         console.log("page loaded")
         // take screenshot
-        await this.page.screenshot({ path: 'screenshots/list.png' });
+        if (process.env.NODE_ENV == "development") {
+            await this.page.screenshot({ path: 'screenshots/list.png' });
+        }
     }
 
     async getListing() {
