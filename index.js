@@ -23,7 +23,7 @@ app.get('/data', async (req, res) => {
 // Endpoint to write data
 app.post('/data', async (req, res) => {
 	try {
-		await getDataFromCourtWebsite().then((data) => {
+		getDataFromCourtWebsite().then((data) => {
 			console.log("saved data");
 		});
 		res.status(200).send('Wait for 3 minutes to get the data');
