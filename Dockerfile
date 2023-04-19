@@ -26,4 +26,4 @@ RUN npx prisma migrate deploy
 EXPOSE 3000
 
 # Start the API
-CMD ["node", "app.js"]
+CMD ["node", "index.js"]
