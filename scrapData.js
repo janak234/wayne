@@ -1,7 +1,5 @@
 const puppeteer = require('puppeteer');
 const cheerio = require('cheerio');
-const fs = require('fs');
-const lockfile = require('proper-lockfile');
 const { PrismaClient } = require('@prisma/client')
 
 class DataBaseIO {
@@ -241,7 +239,13 @@ class CourtListingPage {
 
 async function getDataFromCourtWebsite() {
     // Launch a new browser instance
-    const browser = await puppeteer.launch({ headless: true });
+    var browser;
+
+    if(process.env.NODE_ENV === 'production') {
+        browser = puppeteer.launch({executablePath: '/usr/bin/chromium-browser'});
+    }else {
+        browser = await puppeteer.launch({ headless: true });
+    }
 
     // Create a new page
     const page = await browser.newPage();
