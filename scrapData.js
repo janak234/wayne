@@ -2,10 +2,12 @@ const puppeteer = require('puppeteer');
 const cheerio = require('cheerio');
 const { PrismaClient } = require('@prisma/client')
 
+const prismaClient = new PrismaClient();
+
 class DataBaseIO {
 
     constructor() {
-        this.prisma = new PrismaClient();
+        this.prisma = prismaClient;
     }
 
     async readData() {
@@ -20,36 +22,27 @@ class DataBaseIO {
 
     async addCriminalRecords(criminalListing, court) {
         // Loop through each criminal listing for this court type and create it in the database
-        criminalListing.forEach(async (criminalListing, i) => {
-            await this.prisma.criminalListing.create({
-                data: {
-                    time: criminalListing.time,
-                    name: criminalListing.name,
-                    floorCourt: criminalListing.floorCourt,
-                    court: {
-                        connect: { id: court.id },
-                    },
-                },
-            })
-        });
+        await this.prisma.criminalListing.createMany({
+            data: criminalListing.map((listing) => ({
+                time: listing.time,
+                name: listing.name,
+                floorCourt: listing.floorCourt,
+                courtId: court.id,
+            }))
+        })
     }
 
     async addCivilRecords(civilListings, court) {
         // Loop through each civil listing for this court type and create it in the database
-
-        civilListings.forEach(async (civilListing, i) => {
-            await this.prisma.civilListing.create({
-                data: {
-                    time: civilListing.time,
-                    matterTitle: civilListing.matterTitle,
-                    matterNo: civilListing.matterNo,
-                    floorCourt: civilListing.floorCourt,
-                    court: {
-                        connect: { id: court.id },
-                    },
-                },
-            })
-        });
+        await this.prisma.civilListing.createMany({
+            data: civilListings.map((listing) => ({
+                time: listing.time,
+                matterTitle: listing.matterTitle,
+                matterNo: listing.matterNo,
+                floorCourt: listing.floorCourt,
+                courtId: court.id,
+            }))
+        })
     }
 
     async upsertCourt(courtName, buildingName, address) {
@@ -241,9 +234,16 @@ async function getDataFromCourtWebsite() {
     // Launch a new browser instance
     var browser;
 
-    if(process.env.NODE_ENV === 'production') {
-        browser = await puppeteer.launch({executablePath: '/usr/bin/chromium-browser'});
-    }else {
+    if (process.env.NODE_ENV === 'production') {
+        browser = await puppeteer.launch({
+            headless: true,
+            executablePath: '/usr/bin/google-chrome',
+            args: [
+                "--no-sandbox",
+                "--disable-gpu",
+            ]
+        });
+    } else {
         browser = await puppeteer.launch({ headless: true });
     }
 
@@ -263,4 +263,4 @@ async function getDataFromCourtWebsite() {
     await browser.close();
 }
 
-module.exports = { getDataFromCourtWebsite,DataBaseIO };
+module.exports = { getDataFromCourtWebsite, DataBaseIO };
