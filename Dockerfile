@@ -1,5 +1,5 @@
 # Specify the base image
-FROM node:16-alpine
+FROM node:16
 
 # Set the NODE_ENV environment variable to "production"
 ENV NODE_ENV=production
