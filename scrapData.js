@@ -10,16 +10,6 @@ class DataBaseIO {
         this.prisma = prismaClient;
     }
 
-    async readData() {
-        const data = await this.prisma.court.findMany({
-            include: {
-                civilListing: true,
-                criminalListing: true,
-            }
-        });
-        return data;
-    }
-
     async readDatabyDate(date) {
         const data = await this.prisma.court.findMany({
             where: {

@@ -14,17 +14,6 @@ app.get("/", (req, res) => {
 	res.send("Hello World!");
 });
 
-// Endpoint to read data
-app.get('/data', async (req, res) => {
-	try {
-		const data = await (new DataBaseIO()).readData();
-		res.json(data);
-	} catch (err) {
-		console.error(err);
-		res.status(500).send(err.message);
-	}
-});
-
 // Endpoint to write data
 app.post('/data', async (req, res) => {
 	try {
