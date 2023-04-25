@@ -20,6 +20,19 @@ class DataBaseIO {
         return data;
     }
 
+    async readDatabyDate(date) {
+        const data = await this.prisma.court.findMany({
+            where: {
+                date: this.resetTimeToDate(date),
+            },
+            include: {
+                civilListing: true,
+                criminalListing: true,
+            }
+        });
+        return data;
+    }
+
     async addCriminalRecords(criminalListing, court) {
         // Loop through each criminal listing for this court type and create it in the database
         await this.prisma.criminalListing.createMany({
@@ -51,6 +64,7 @@ class DataBaseIO {
             where: {
                 name: courtName,
                 buildingName: buildingName,
+                date: this.resetTimeToDate(new Date()),
             }
         })
 
@@ -61,6 +75,7 @@ class DataBaseIO {
                     name: courtName,
                     buildingName: buildingName,
                     address: address,
+                    date: this.resetTimeToDate(new Date()),
                 },
             })
         }
@@ -69,8 +84,12 @@ class DataBaseIO {
     }
 
     async writeData(data) {
-
-        await this.prisma.court.deleteMany({});
+        // Delete all existing courts and listings for today
+        await this.prisma.court.deleteMany({
+            where:{
+                date: this.resetTimeToDate(new Date()),
+            }
+        });
 
         // Loop through each court type in the data object
         for (const courtName in data) {
@@ -92,6 +111,15 @@ class DataBaseIO {
                 });
             }
         }
+    }
+
+    resetTimeToDate(date) {
+        // 6 PM
+        date.setHours(18);
+        date.setMinutes(0);
+        date.setSeconds(0);
+        date.setMilliseconds(0);
+        return date;
     }
 }
 

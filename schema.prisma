@@ -12,7 +12,8 @@ model Court {
   name            String
   buildingName    String
   address         String
-  civilListing    CivilListing[] 
+  date            DateTime          @default(now())
+  civilListing    CivilListing[]
   criminalListing CriminalListing[]
 }
 
@@ -34,5 +35,5 @@ model CriminalListing {
   floorCourt String
   createdAt  DateTime @default(now())
   courtId    Int
-  court      Court    @relation(fields: [courtId], references: [id],  onDelete: Cascade)
+  court      Court    @relation(fields: [courtId], references: [id], onDelete: Cascade)
 }
