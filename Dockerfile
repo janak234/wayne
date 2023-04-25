@@ -1,6 +1,9 @@
 # Specify the base image
 FROM node:16-slim
 
+# Set timezone to UTC+08:00
+ENV TZ=Asia/Shanghai
+
 # We don't need the standalone Chromium
 ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD true
 

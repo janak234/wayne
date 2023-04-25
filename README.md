@@ -12,6 +12,7 @@
 ```sh
 docker pull mysql
 docker run --name mysql-container -e MYSQL_ROOT_PASSWORD=<password> -p 3306:3306 -d mysql
+docker stop/start mysql-container 
 
 CREATE USER 'username'@'localhost' IDENTIFIED BY 'password';
 GRANT ALL PRIVILEGES ON dbname.* TO 'username'@'localhost';
