@@ -1,0 +1,36 @@
+html
+	head
+		title= title
+		meta(name='viewport', content='width=device-width, initial-scale=1')
+		link(rel='stylesheet', href='https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css')
+		link(rel='stylesheet', href='https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.13.2/themes/base/jquery-ui.min.css')
+
+		block my_styles
+
+		body
+			nav.navbar.is-dark
+				.container
+					.navbar-brand
+						a.navbar-item(href='#') LOGO
+						button.button.navbar-burger.burger(data-target='navbarMenu')
+							span
+							span
+							span
+					.navbar-menu#navbarMenu
+						.navbar-end
+							a.navbar-item(href='#') Login
+							a.navbar-item(href='#') Register
+
+
+			main.container.mt-3
+				block content
+
+			footer.footer.text-center
+				div.content.has-text-grey
+					p
+					| &copy; My Company 2023
+
+		script(src='https://code.jquery.com/jquery-3.6.4.min.js')
+		script(src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.13.2/jquery-ui.min.js")
+
+		block my_scripts

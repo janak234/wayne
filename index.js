@@ -7,11 +7,39 @@ const cron = require('node-cron');
 const { getDataFromCourtWebsite, DataBaseIO } = require('./scrapData');
 
 const app = express();
+
+app.set('view engine', 'pug');
+app.set('views', './views');
+
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
-app.get("/", (req, res) => {
-	res.send("Hello World!");
+app.get("/", async (req, res) => {
+	try {
+		const date = new Date();
+		const data = await (new DataBaseIO()).readDatabyDate(date)
+		res.render('index', { data, date: date.toISOString().substring(0, 10), today: date.toISOString().substring(0, 10) });
+	} catch (err) {
+		res.status(500).send("Something is wrong on our side :(");
+	}
+});
+
+app.post("/", async (req, res) => {
+	try {
+		const { date } = req.body
+		const myDate = new Date(date)
+		const today = new Date();
+		if (myDate != "Invalid Date") {
+			const data = await (new DataBaseIO()).readDatabyDate(myDate)
+			res.render('index', { data, date: myDate.toISOString().substring(0, 10), today: today.toISOString().substring(0, 10)  });
+		}
+		else {
+			const data = await (new DataBaseIO()).readDatabyDate(today)
+			res.render('index', { data, date: today.toISOString().substring(0, 10), today: today.toISOString().substring(0, 10) });
+		}
+	} catch (err) {
+		res.status(400).send("Please provide date");
+	}
 });
 
 // Endpoint to write data
@@ -24,22 +52,6 @@ app.post('/data', async (req, res) => {
 	} catch (err) {
 		console.error(err);
 		res.status(500).send(err.message);
-	}
-});
-
-// Endpoint to get date
-app.post('/date', (req, res) => {
-	try {
-		const { date } = req.body
-		const myDate = new Date(date)
-		if (myDate != "Invalid Date") {
-			res.send({
-				date: (new DataBaseIO()).resetTimeToDate(myDate)
-			})
-		}
-		else { res.status(400).send("Please provide valid date"); }
-	} catch (err) {
-		res.status(400).send("Please provide date");
 	}
 });
 

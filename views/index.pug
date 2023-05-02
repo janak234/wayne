@@ -1,0 +1,82 @@
+extends layout
+
+block my_styles
+	style.
+		/* Remove the box around the tab view */
+		#tabs {
+			border: none;
+		}
+
+		/* Remove the background color of the tab headers */
+		#tabs ul {
+			background-color: transparent;
+			border: none;
+		}
+
+		/* Style the active tab */
+		#tabs .ui-tabs-active a {
+			border-bottom: 2px solid #007bff;
+		}
+
+block content
+	p Please select a date:
+
+	form(action="/", method="post") 
+		div.field.is-grouped.is-grouped-multiline
+			div.control
+				input.input(type='date' name="date" value=date max=today)
+			div.control
+				button.button.is-primary(type='submit') Fetch Data
+
+
+	#tabs
+		ul
+			li: a(href='#criminal-listing') Criminal Listing
+			li: a(href='#civil-listing') Civil Listing
+		#criminal-listing
+			table.table.is-striped.is-fullwidth
+				thead
+					tr
+						th Time
+						th Name
+						th Court
+				tbody
+					each court in data
+						if court.criminalListing.length
+							tr
+								td(colspan="3").has-text-centered
+									h4.has-text-weight-bold= court.name + ' - ' + court.buildingName 
+							each criminal in court.criminalListing
+								tr
+									td= criminal.time
+									td= criminal.name
+									td= criminal.floorCourt		
+
+
+		#civil-listing
+			table.table.is-striped.is-fullwidth
+				thead
+					tr
+						th Time
+						th matterTitle
+						th matterNo
+						th floorCourt
+				tbody
+					each court in data
+						if court.civilListing.length
+							tr
+								td(colspan="4").has-text-centered
+									h4.has-text-weight-bold= court.name + ' - ' + court.buildingName 
+							each civil in court.civilListing
+								tr
+									td= civil.time
+									td= civil.matterTitle
+									td= civil.matterNo
+									td= civil.floorCourt
+
+block my_scripts
+	script.
+		$(document).ready(function() {
+			$('#tabs').tabs();
+		});
+
