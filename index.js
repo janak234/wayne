@@ -14,28 +14,44 @@ app.set('views', './views');
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
+function getPrevDate(date) {
+	const prevDate = new Date(date);
+	prevDate.setDate(prevDate.getDate() - 1);
+	return prevDate;
+}
+
+function getDateStr(date) {
+	return date.toISOString().substring(0, 10);
+}
+
 app.get("/", async (req, res) => {
+	// today's data is fetched & stored yesterday
 	try {
-		const date = new Date();
-		const data = await (new DataBaseIO()).readDatabyDate(date)
-		res.render('index', { data, date: date.toISOString().substring(0, 10), today: date.toISOString().substring(0, 10) });
+		const today = new Date();
+		const yesterday = getPrevDate(today);
+
+		const data = await (new DataBaseIO()).readDatabyDate(yesterday)
+		res.render('index', { data, date: getDateStr(today), today: getDateStr(today) });
 	} catch (err) {
 		res.status(500).send("Something is wrong on our side :(");
 	}
 });
 
 app.post("/", async (req, res) => {
+	// today's data is fetched & stored yesterday
 	try {
 		const { date } = req.body
 		const myDate = new Date(date)
 		const today = new Date();
+		const myDate_1 = getPrevDate(myDate);
+
 		if (myDate != "Invalid Date") {
-			const data = await (new DataBaseIO()).readDatabyDate(myDate)
-			res.render('index', { data, date: myDate.toISOString().substring(0, 10), today: today.toISOString().substring(0, 10)  });
+			const data = await (new DataBaseIO()).readDatabyDate(myDate_1)
+			res.render('index', { data, date: getDateStr(myDate), today: getDateStr(today)});
 		}
 		else {
 			const data = await (new DataBaseIO()).readDatabyDate(today)
-			res.render('index', { data, date: today.toISOString().substring(0, 10), today: today.toISOString().substring(0, 10) });
+			res.render('index', { data, date: getDateStr(today), today: getDateStr(today) });
 		}
 	} catch (err) {
 		res.status(400).send("Please provide date");
