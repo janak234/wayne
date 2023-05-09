@@ -1,0 +1,25 @@
+html
+	head
+		title Login Page
+		link(rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.0.2/css/bootstrap.min.css")
+	body
+		section.section
+			.container
+				.row.justify-content-center
+					.col-md-6
+						.card.mt-5
+							.card-body
+								h1.card-title Login
+								if error
+									.alert.alert-danger
+										button.close(data-dismiss="alert")
+											span &times;
+										p= error
+								form(action="/auth/login" method="POST")
+									.mb-3
+										label.form-label Username
+										input.form-control(type="text" name="username")
+									.mb-3
+										label.form-label Password
+										input.form-control(type="password" name="password")
+									button.btn.btn-primary(type="submit") Login

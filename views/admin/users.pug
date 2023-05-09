@@ -1,0 +1,78 @@
+extends ../layout
+
+block content
+    if error
+        div.notification.is-danger
+            button.delete
+                span &times;
+            p= error
+
+    button.button.is-primary(type='button', id='add-user-btn') Add User
+
+    table.table.is-fullwidth
+        thead
+            tr
+                th Username
+                th Password
+                th Edit
+        tbody
+            each user in users
+                tr
+                    td #{user.username}
+                    td #{user.password}
+                    td
+                        form(action=`/admin/deleteUser/${user.id}`, method='POST')
+                            input(type='hidden', name='_method', value='DELETE')
+                            button.button.is-danger.is-small(type='submit') Delete
+
+    .modal#add-user-modal
+        .modal-background
+        .modal-content.box
+            h1 Add User
+            form#add-user-form(action='/admin/users', method='POST')
+                div.field
+                    label.label(for='username-input') Username
+                    div.control
+                        input#username-input.input(type='text', name='username')
+                div.field
+                    label.label(for='password-input') Password
+                    div.control
+                        input#password-input.input(type='text', name='password')
+                button#save-user-btn.button.is-primary(type='submit') Save
+        button.modal-close.is-large(aria-label='close') X
+
+block my_scripts
+    // jQuery code
+    script.
+        $(document).ready(() => {
+            $('.notification .delete').click(function() {
+                $(this).parent().hide();
+            });
+
+            const $addUserBtn = $('#add-user-btn');
+            const $addUserModal = $('#add-user-modal');
+            const $addUserForm = $('#add-user-form');
+            const $usernameInput = $('#username-input');
+    
+            $addUserBtn.click(() => {
+                $addUserModal.addClass('is-active');
+                $usernameInput.focus();
+            });
+
+            $addUserModal.find('.modal-close').click(() => {
+                $addUserModal.removeClass('is-active');
+            });
+
+            $addUserModal.click((event) => {
+                if (event.target.id === 'add-user-modal') {
+                    $addUserModal.removeClass('is-active');
+                }
+            });
+
+
+            $(document).keydown((event) => {
+                if (event.keyCode === 27) {
+                    $addUserModal.removeClass('is-active');
+                }
+            });
+        });

@@ -12,15 +12,19 @@ html
 				.container
 					.navbar-brand
 						a.navbar-item(href='#') LOGO
-						button.button.navbar-burger.burger(data-target='navbarMenu')
+						button.navbar-burger(data-target='nav-menu')
 							span
 							span
 							span
-					.navbar-menu#navbarMenu
+					#nav-menu.navbar-menu
 						.navbar-end
-							a.navbar-item(href='#') Login
-							a.navbar-item(href='#') Register
-
+							a.navbar-item(href='/') Home
+							a.navbar-item(href='/admin/users') Users
+							a.navbar-item(href='/admin/settings') Settings
+							a.navbar-item(onclick='event.preventDefault(); document.getElementById("logout-form").submit();') Logout
+							form#logout-form(action='/auth/logout' method='POST' style='display: none;')
+								button.button.is-ghost.has-text-white(type='submit')
+									| Logout
 
 			main.container.mt-3
 				block content
@@ -33,4 +37,11 @@ html
 		script(src='https://code.jquery.com/jquery-3.6.4.min.js')
 		script(src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.13.2/jquery-ui.min.js")
 
+		script.
+			$(document).ready(function() {
+				$('.navbar-burger').click(function() {
+					$('#nav-menu').toggleClass('is-active');
+					$(this).toggleClass('is-active');
+				});
+			});
 		block my_scripts
