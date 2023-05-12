@@ -14,19 +14,37 @@ router.post('/login', async (req, res) => {
     const { username, password } = req.body;
     try {
         // Authenticate user
-        const user = await prisma.admin.findUnique({
+        var user = await prisma.admin.findUnique({
             where: {
                 username,
             },
         });
 
+        var user_role = 'admin';
+
+        if (!user) {
+            user = await prisma.appUser.findUnique({
+                where: {
+                    username
+                }
+            });
+            user_role = 'user';
+        }
+
         if (!user || user.password !== password) {
+            // User not found or password incorrect
             res.status(401).render('login', { error: "Invalid username or password" });
-        }else{
+        } else {
+            // Admin User found and password correct
             req.session.authenticated = true;
             req.session.user = { username };
-            res.redirect('/');
+            req.session.user_role = user_role;
+            if (user_role === 'admin')
+                res.redirect('/admin');
+            else
+                res.redirect('/user');
         }
+
     } catch (err) {
         console.error(err);
         res.status(401).render('login', { error: "Error on Our side" });
@@ -36,7 +54,7 @@ router.post('/login', async (req, res) => {
 // Logout route
 router.post('/logout', (req, res) => {
     req.session.destroy();
-    res.redirect('/');
+    res.redirect('/auth/login');
 });
 
 async function createAdmin() {
@@ -59,6 +77,22 @@ async function createAdmin() {
     }
 }
 
+function requireAdminAuth(req, res, next) {
+    if (req.session.authenticated && req.session.user_role === 'admin') {
+        next();
+    } else {
+        res.redirect('/auth/login');
+    }
+}
+
+function requireUserAuth(req, res, next) {
+    if (req.session.authenticated && req.session.user_role === 'user') {
+        next();
+    } else {
+        res.redirect('/auth/login');
+    }
+}
+
 function requireAuth(req, res, next) {
     if (req.session.authenticated) {
         next();
@@ -67,4 +101,4 @@ function requireAuth(req, res, next) {
     }
 }
 
-module.exports = { createAdmin, requireAuth, router };
+module.exports = { createAdmin, requireAuth, router, requireAdminAuth, requireUserAuth };

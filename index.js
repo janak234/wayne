@@ -7,8 +7,8 @@ const cookieParser = require('cookie-parser');
 const session = require('express-session');
 
 const { getDataFromCourtWebsite, DataBaseIO } = require('./app/scrapData');
-const { createAdmin, requireAuth, router : authRoutes } = require('./app/auth');
-const homeRoutes = require('./app/home');
+const { createAdmin, router: authRoutes, requireAdminAuth, requireUserAuth } = require('./app/auth');
+const userRouter = require('./app/user');
 const adminRoutes = require('./app/admin');
 
 const app = express();
@@ -21,18 +21,33 @@ app.use(bodyParser.json());
 
 app.use(cookieParser());
 app.use(session({
-    secret: process.env.SESSION_SECRET,
-    resave: true,
-    saveUninitialized: true
+	secret: process.env.SESSION_SECRET,
+	resave: true,
+	saveUninitialized: true
 }));
 
-app.use("/auth",authRoutes);
+app.use("/auth", authRoutes);
 
-app.use(requireAuth);
+app.use("/admin", requireAdminAuth, adminRoutes);
 
-app.use("/admin",adminRoutes);
+app.use("/user", requireUserAuth, userRouter);
 
-app.use("/",homeRoutes);
+// Endpoint to write data
+app.post('/data', async (req, res) => {
+	try {
+		getDataFromCourtWebsite().then((data) => {
+			console.log("saved data");
+		});
+		res.status(200).send('Wait for 3 minutes to get the data');
+	} catch (err) {
+		console.error(err);
+		res.status(500).send(err.message);
+	}
+});
+
+app.use((req, res, next) => {
+	res.status(404).render('404');
+});
 
 // define the cron job to scrap data
 cron.schedule(process.env.CRON_SCHEDULE, () => {
@@ -50,5 +65,5 @@ const PORT = process.env.port || 3000;
 app.listen(PORT, () => {
 	console.log(`Server listening on port ${PORT}`);
 	createAdmin()
-  		.catch(err => console.error('Failed to create admin user:', err));
+		.catch(err => console.error('Failed to create admin user:', err));
 });

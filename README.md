@@ -21,5 +21,6 @@ GRANT ALL PRIVILEGES ON dbname.* TO 'username'@'localhost';
 # deploy
 ```sh
 sudo docker build -t wayne_app .
-sudo docker run --name WAYNE_APP -p 80:3000 -d --restart=unless-stopped wayne_app
+sudo docker run --name WAYNE_APP -p 80:3000 -e SESSION_SECRET=ccd-ewdd-ekck-ewd -e ADMIN_USERNAME=wayne -e ADMIN_PASSWORD=wayne_123 -d --restart=unless-stopped wayne_app
+sudo docker run --name WAYNE_APP -p 80:3000 -e SESSION_SECRET=ccd-ewdd-ekck-ewd -e ADMIN_USERNAME=wayne -e ADMIN_PASSWORD=wayne_123 wayne_app
 ```
