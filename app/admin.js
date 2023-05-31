@@ -7,52 +7,52 @@ const prisma = new PrismaClient();
 
 // fetch users
 router.get('/users', async (req, res) => {
-    // get all users from database
-    const users = await prisma.appUser.findMany();
-    res.render('admin/users', { users });
+	// get all users from database
+	const users = await prisma.appUser.findMany();
+	res.render('admin/users', { users });
 });
 
 // insert new user
 router.post('/users', async (req, res) => {
-    const { username, password } = req.body;
-    try {
-        await prisma.appUser.create({
-            data: {
-                username,
-                password,
-            },
-        });
-        // get all users from database
-        const users = await prisma.appUser.findMany();
-        
-        res.render('admin/users',{ users });
-    } catch (err) {
-        // get all users from database
-        const users = await prisma.appUser.findMany();
-        const error = "Username already exists"
-        res.render('admin/users',{ users, error });
-    }
+	const { username, password } = req.body;
+	try {
+		await prisma.appUser.create({
+			data: {
+				username,
+				password,
+			},
+		});
+		// get all users from database
+		const users = await prisma.appUser.findMany();
+
+		res.render('admin/users', { users });
+	} catch (err) {
+		// get all users from database
+		const users = await prisma.appUser.findMany();
+		const error = "Username already exists"
+		res.render('admin/users', { users, error });
+	}
 });
 
 // delete user
 router.post('/deleteUser/:id', async (req, res) => {
-    const { id } = req.params;
-    try {
-        await prisma.appUser.delete({
-            where: {
-                id: parseInt(id),
-            },
-        });
-        res.redirect('/admin/users');
-    } catch (err) {
-        console.error(err);
-        res.status(500).render('Error on our side');
-    }
+	const { id } = req.params;
+	try {
+		await prisma.appUser.delete({
+			where: {
+				id: parseInt(id),
+			},
+		});
+		res.redirect('/admin/users');
+	} catch (err) {
+		console.error(err);
+		res.status(500).render('Error on our side');
+	}
 });
 
 // settings route
 router.get('/settings', async (req, res) => {
-    res.render('admin/settings', {  });
+	res.render('admin/settings', {});
 });
 
 function getPrevDate(date) {
@@ -89,7 +89,7 @@ router.post("/", async (req, res) => {
 
 		if (myDate != "Invalid Date") {
 			const data = await (new DataBaseIO()).readDatabyDate(myDate_1)
-			res.render('admin/index', { data, date: getDateStr(myDate), today: getDateStr(today)});
+			res.render('admin/index', { data, date: getDateStr(myDate), today: getDateStr(today) });
 		}
 		else {
 			const data = await (new DataBaseIO()).readDatabyDate(today)
@@ -97,6 +97,28 @@ router.post("/", async (req, res) => {
 		}
 	} catch (err) {
 		res.status(400).send("Please provide date");
+	}
+});
+
+// search route
+router.post('/search', async (req, res) => {
+	try {
+		const { query } = req.body;
+
+		const tomorrow = new Date();
+		tomorrow.setDate(tomorrow.getDate() + 1);
+
+		const _60daysAgo = new Date();
+		_60daysAgo.setDate(_60daysAgo.getDate() - 60);
+
+		var data = await (new DataBaseIO()).searchRecord(query, _60daysAgo, tomorrow);
+		// console.log(data);
+		// data = JSON.stringify(JSON.parse(data));
+
+		res.render('admin/search', {date:getDateStr(new Date()), query, data });
+	} catch (err) {
+		console.error(err);
+		res.status(500).send("Something is wrong on our side :(");
 	}
 });
 

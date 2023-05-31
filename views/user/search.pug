@@ -1,0 +1,66 @@
+extends layout
+
+block my_styles
+    link(rel='stylesheet', href='/css/table.search.css')
+
+block content
+    p Please select a date:
+
+    form(action="/user", method="post") 
+        div.field.is-grouped.is-grouped-multiline
+            div.control
+                input.input(type='date' name="date" value=date max=today)
+            div.control
+                button.button.is-primary(type='submit') Fetch Data
+
+    div.control
+        form(action="/user/search", method="post")
+            .columns.is-gapless
+                .column.is-three-quarters.m-1
+                    input#my-search-input.input.is-fullwidth(type="text", placeholder="Search", name="query",  value=query)
+                .column.m-1
+                    button.button.is-primary(type='submit') Global Search
+
+    #tabs
+        ul
+            li: a(href='#criminal-listing') Criminal Listing
+            li: a(href='#civil-listing') Civil Listing
+        #criminal-listing
+            each court in data
+                if court.criminalListing.length
+                    .my-table
+                        h4.has-text-weight-bold.has-text-grey.is-pulled-right= court.name + ' - ' + court.buildingName + ' - ' + court.date.toLocaleDateString()
+                        table.table.is-striped.is-fullwidth
+                            thead
+                                tr
+                                    th.has-text-grey Time
+                                    th.has-text-grey Name
+                                    th.has-text-grey Court
+                            tbody
+                                each criminal in court.criminalListing
+                                    tr.is-data-row
+                                        td= criminal.time
+                                        td.my-criminal-name= criminal.name
+                                        td= criminal.floorCourt		
+        #civil-listing
+            each court in data
+                if court.civilListing.length
+                    .my-table
+                        h4.has-text-weight-bold.has-text-grey.is-pulled-right= court.name + ' - ' + court.buildingName + ' - ' + court.date.toLocaleDateString()
+                        table.table.is-striped.is-fullwidth
+                            thead
+                                tr
+                                    th.has-text-grey Time
+                                    th.has-text-grey matterTitle
+                                    th.has-text-grey matterNo
+                                    th.has-text-grey floorCourt
+                            tbody
+                                each civil in court.civilListing
+                                    tr.is-data-row
+                                        td= civil.time
+                                        td.my-matter-title= civil.matterTitle
+                                        td.my-matter-no= civil.matterNo
+                                        td= civil.floorCourt
+
+block my_scripts
+    script(src='/js/table.search.js')

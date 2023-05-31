@@ -1,0 +1,15 @@
+/* Remove the box around the tab view */
+#tabs {
+    border: none;
+}
+
+/* Remove the background color of the tab headers */
+#tabs ul {
+    background-color: transparent;
+    border: none;
+}
+
+/* Style the active tab */
+#tabs .ui-tabs-active a {
+    border-bottom: 2px solid #007bff;
+}

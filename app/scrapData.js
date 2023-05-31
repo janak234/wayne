@@ -23,6 +23,61 @@ class DataBaseIO {
         return data;
     }
 
+    async searchRecord(query, startDate, endDate) {
+        const data = await this.prisma.court.findMany({
+            where: {
+                OR: [
+                    {
+                        civilListing: {
+                            some: {
+                                matterTitle: {
+                                    contains: query,
+                                },
+                            },
+                        },
+                    },
+                    {
+                        criminalListing: {
+                            some: {
+                                name: {
+                                    contains: query,
+                                },
+                            },
+                        },
+                    },
+                ],
+                date: {
+                    gte: this.resetTimeToDate(startDate),
+                    lte: this.resetTimeToDate(endDate),
+                }
+            },
+            include: {
+                civilListing: {
+                    where: {
+                        matterTitle: {
+                            contains: query,
+                        },
+                    },
+                },
+                criminalListing: {
+                    where: {
+                        name: {
+                            contains: query,
+                        },
+                    },
+                },
+            }
+        });
+
+        // add 1 day to each date
+        data.forEach((court) => {
+            court.date.setDate(court.date.getDate() + 1);
+        });
+
+        return data;
+
+    }
+
     async addCriminalRecords(criminalListing, court) {
         // Loop through each criminal listing for this court type and create it in the database
         await this.prisma.criminalListing.createMany({
@@ -76,7 +131,7 @@ class DataBaseIO {
     async writeData(data) {
         // Delete all existing courts and listings for today
         await this.prisma.court.deleteMany({
-            where:{
+            where: {
                 date: this.resetTimeToDate(new Date()),
             }
         });

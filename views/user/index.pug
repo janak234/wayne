@@ -1,22 +1,8 @@
 extends layout
 
 block my_styles
-	style.
-		/* Remove the box around the tab view */
-		#tabs {
-			border: none;
-		}
+	link(rel='stylesheet', href='/css/table.search.css')
 
-		/* Remove the background color of the tab headers */
-		#tabs ul {
-			background-color: transparent;
-			border: none;
-		}
-
-		/* Style the active tab */
-		#tabs .ui-tabs-active a {
-			border-bottom: 2px solid #007bff;
-		}
 
 block content
 	p Please select a date:
@@ -28,15 +14,19 @@ block content
 			div.control
 				button.button.is-primary(type='submit') Fetch Data
 
+	div.control
+		form(action="/user/search", method="post")
+			.columns.is-gapless
+				.column.is-three-quarters.m-1
+					input#my-search-input.input.is-fullwidth(type="text", placeholder="Search", name="query")
+				.column.m-1
+					button.button.is-primary(type='submit') Global Search
 
 	#tabs
 		ul
 			li: a(href='#criminal-listing') Criminal Listing
 			li: a(href='#civil-listing') Civil Listing
 		#criminal-listing
-			div.control
-				input.my-search-input.input.is-fullwidth(type="text", placeholder="Search")
-
 			each court in data
 				if court.criminalListing.length
 					.my-table
@@ -54,9 +44,6 @@ block content
 										td.my-criminal-name= criminal.name
 										td= criminal.floorCourt		
 		#civil-listing
-			div.control
-				input.my-search-input.input.is-fullwidth(type="text", placeholder="Search")
-
 			each court in data
 				if court.civilListing.length
 					.my-table
@@ -77,45 +64,6 @@ block content
 										td= civil.floorCourt
 
 block my_scripts
-	script.
-		$(document).ready(function() {
-			$('#tabs').tabs();
-
-			// search functionality
-			function performSearch(listing,query, isListing){
-				listing.find('.is-data-row').each(function(){
-					if(isListing($(this), query)){
-						$(this).show();
-						$(this).closest('.my-table').show(); // show parent table
-					}else{
-						$(this).hide();
-						var table = $(this).closest('.my-table');
-						var hasVisibleRows = table.find('.is-data-row:visible').length > 0;
-						if (!hasVisibleRows) {
-							table.hide(); // hide parent table
-						}
-					}
-				});
-			}
-
-			$('#criminal-listing .my-search-input').on('keyup', function(){
-				var query = $(this).val().toLowerCase();
-
-				performSearch($('#criminal-listing'),query, (row, query)=>{
-					var criminalName = row.find('.my-criminal-name').text().toLowerCase();
-					return criminalName.includes(query)
-				});
-			});
-
-			$('#civil-listing .my-search-input').on('keyup', function(){
-				var query = $(this).val().toLowerCase();
-
-				performSearch($('#civil-listing'),query, (row, query)=>{
-					var matterTitle = row.find('.my-matter-title').text().toLowerCase();
-					// remove 2 spaces and replace with 1 space
-					var matterNo = row.find('.my-matter-no').text().toLowerCase().replace(/ {2}/g, " ");
-					return matterTitle.includes(query) || matterNo.includes(query)
-				});
-			});
-		});
+	block my_scripts
+		script(src='/js/table.search.js')
 

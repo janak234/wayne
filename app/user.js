@@ -48,4 +48,26 @@ router.post("/", async (req, res) => {
 	}
 });
 
+// search route
+router.post('/search', async (req, res) => {
+	try {
+		const { query } = req.body;
+
+		const tomorrow = new Date();
+		tomorrow.setDate(tomorrow.getDate() + 1);
+
+		const _60daysAgo = new Date();
+		_60daysAgo.setDate(_60daysAgo.getDate() - 60);
+
+		var data = await (new DataBaseIO()).searchRecord(query, _60daysAgo, tomorrow);
+		// console.log(data);
+		// data = JSON.stringify(JSON.parse(data));
+
+		res.render('user/search', {date:getDateStr(new Date()), query, data });
+	} catch (err) {
+		console.error(err);
+		res.status(500).send("Something is wrong on our side :(");
+	}
+});
+
 module.exports = router;
