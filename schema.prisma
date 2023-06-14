@@ -21,6 +21,13 @@ model AppUser {
   createdAt DateTime @default(now())
 }
 
+model Alert {
+  id        Int      @id @default(autoincrement())
+  text      String
+  isActive  Boolean  @default(true)
+  username  String
+  createdAt DateTime @default(now())
+}
 
 model Court {
   id              Int               @id @default(autoincrement())

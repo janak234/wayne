@@ -1,0 +1,27 @@
+extends layout
+
+block content
+
+    // Add Alert
+    div.control
+        form(action="/user/alerts", method="post")
+            .columns.is-gapless
+                .column.is-three-quarters.m-1
+                    input.input(type="text", name="text", placeholder="Enter alert text")
+                .column.m-1
+                    button.button.is-primary(type="submit") Add Alert
+
+    table.table.is-fullwidth
+        thead
+            tr
+                th Alerts
+                th 
+
+        tbody
+            each alert in alerts
+                tr
+                    td= alert.text
+                    td.has-text-right
+                        form(action=`/user/deleteAlert/${alert.id}`, method="post")
+                            input(type="hidden", name="_method", value="delete")
+                            button.button.is-danger.is-small(type="submit") Delete

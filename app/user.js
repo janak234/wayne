@@ -1,5 +1,8 @@
 const express = require('express');
 const { getDataFromCourtWebsite, DataBaseIO } = require('./scrapData');
+const { PrismaClient } = require('@prisma/client')
+
+const prisma = new PrismaClient();
 
 const router = express.Router();
 
@@ -37,7 +40,7 @@ router.post("/", async (req, res) => {
 
 		if (myDate != "Invalid Date") {
 			const data = await (new DataBaseIO()).readDatabyDate(myDate_1)
-			res.render('user/index', { data, date: getDateStr(myDate), today: getDateStr(today)});
+			res.render('user/index', { data, date: getDateStr(myDate), today: getDateStr(today) });
 		}
 		else {
 			const data = await (new DataBaseIO()).readDatabyDate(today)
@@ -45,6 +48,73 @@ router.post("/", async (req, res) => {
 		}
 	} catch (err) {
 		res.status(400).send("Please provide date");
+	}
+});
+
+const alerts = [
+	{
+		id: 1,
+		text: "hello",
+	},
+	{
+		id: 2,
+		text: "world",
+	}
+];
+
+var counter = 3;
+
+// alerts
+router.get('/alerts', async (req, res) => {
+	try {
+		const username = req.session.user.username;
+
+		const alerts = await prisma.alert.findMany({
+			where: {
+				username: username
+			}
+		});
+		res.render('user/alerts', { alerts });
+	} catch (error) {
+		console.log(error);
+		res.status(500).send("Something is wrong on our side :(");
+	}
+});
+
+// add alerts
+router.post('/alerts', async (req, res) => {
+	try {
+		const username = req.session.user.username;
+		const { text } = req.body;
+
+		await prisma.alert.create({
+			data: {
+				username: username,
+				text: text,
+			}
+		});
+
+		res.redirect('/user/alerts');
+	} catch (err) {
+		console.error(err);
+		res.status(500).send("Something is wrong on our side :(");
+	}
+});
+
+// delete alert
+router.post("/deleteAlert/:id", async (req, res) => {
+	try {
+		const alertId = parseInt(req.params.id);
+
+		await prisma.alert.delete({
+			where: { id: alertId }
+		})
+
+		res.redirect('/user/alerts');
+
+	} catch (err) {
+		console.error(err);
+		res.status(500).send("Something is wrong on our side :(");
 	}
 });
 
@@ -63,7 +133,7 @@ router.post('/search', async (req, res) => {
 		// console.log(data);
 		// data = JSON.stringify(JSON.parse(data));
 
-		res.render('user/search', {date:getDateStr(new Date()), query, data });
+		res.render('user/search', { date: getDateStr(new Date()), query, data });
 	} catch (err) {
 		console.error(err);
 		res.status(500).send("Something is wrong on our side :(");

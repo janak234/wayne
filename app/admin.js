@@ -50,11 +50,6 @@ router.post('/deleteUser/:id', async (req, res) => {
 	}
 });
 
-// settings route
-router.get('/settings', async (req, res) => {
-	res.render('admin/settings', {});
-});
-
 function getPrevDate(date) {
 	const prevDate = new Date(date);
 	prevDate.setDate(prevDate.getDate() - 1);
