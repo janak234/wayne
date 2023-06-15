@@ -9,39 +9,77 @@ const prisma = new PrismaClient();
 router.get('/users', async (req, res) => {
 	// get all users from database
 	const users = await prisma.appUser.findMany();
-	res.render('admin/users', { users });
+
+	const { error } = req.query;
+
+	if (error) res.render('admin/users', { users, error });
+	else res.render('admin/users', { users });
 });
 
 // insert new user
 router.post('/users', async (req, res) => {
-	const { username, password } = req.body;
+	const { username, password, email } = req.body;
 	try {
 		await prisma.appUser.create({
 			data: {
 				username,
 				password,
+				email,
 			},
 		});
 		// get all users from database
 		const users = await prisma.appUser.findMany();
 
-		res.render('admin/users', { users });
+		res.redirect('/admin/users');
+
 	} catch (err) {
 		// get all users from database
-		const users = await prisma.appUser.findMany();
 		const error = "Username already exists"
-		res.render('admin/users', { users, error });
+		res.redirect('/admin/users?error=' + encodeURIComponent(error));
+	}
+});
+
+// edit email of user
+router.post('/editEmail', async (req, res) => {
+	try {
+		const { username, email } = req.body;
+
+		console.log(username, email);
+
+		await prisma.appUser.update({
+			where: {
+				username: username,
+			},
+			data: {
+				email: email,
+			},
+		});
+		res.redirect('/admin/users');
+	} catch (err) {
+		const error = "Error Editing Email";
+		res.redirect('/admin/users?error=' + encodeURIComponent(error));
 	}
 });
 
 // delete user
 router.post('/deleteUser/:id', async (req, res) => {
 	const { id } = req.params;
+	const { username } = req.body;
+
+	console.log(id, username);
+
 	try {
 		await prisma.appUser.delete({
 			where: {
 				id: parseInt(id),
 			},
+		});
+
+		// delete all alerts of this user
+		await prisma.alert.deleteMany({
+			where: {
+				username: username,
+			}
 		});
 		res.redirect('/admin/users');
 	} catch (err) {
@@ -110,7 +148,7 @@ router.post('/search', async (req, res) => {
 		// console.log(data);
 		// data = JSON.stringify(JSON.parse(data));
 
-		res.render('admin/search', {date:getDateStr(new Date()), query, data });
+		res.render('admin/search', { date: getDateStr(new Date()), query, data });
 	} catch (err) {
 		console.error(err);
 		res.status(500).send("Something is wrong on our side :(");

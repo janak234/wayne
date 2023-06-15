@@ -8,6 +8,11 @@
 > npx prisma generate
 ```
 
+```sh 
+eval "$(ssh-agent -s)"
+ssh-add /path/to/ssh_key_file
+```
+
 # host mysql
 ```sh
 docker pull mysql

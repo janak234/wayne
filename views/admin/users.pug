@@ -14,17 +14,41 @@ block content
             tr
                 th Username
                 th Password
+                th Email
                 th Edit
         tbody
             each user in users
                 tr
                     td #{user.username}
                     td #{user.password}
+                    td #{user.email}
                     td
                         form(id=`delete-form-${user.id}`, action=`/admin/deleteUser/${user.id}`, method='POST')
                             input(type='hidden', name='_method', value='DELETE')
-                            button.button.is-danger.is-small(type='button', onclick=`confirmDelete(${user.id})`) Delete
+                            input(type="hidden", name="username", value=`${user.username}`)
+                            
+                            button.mx-1.button.is-info.is-small.my--edit-email(type='button') 
+                                span.icon
+                                    i.fa.fa-envelope
+                            button.mx-1.button.is-danger.is-small(type='button', onclick=`confirmDelete(${user.id})`) 
+                                span.icon
+                                    i.fa.fa-trash
+                                    
+    //- modal for editing email
+    .modal#edit-email-modal
+        .modal-background
+        .modal-content.box
+            h1#editEmailTitle Edit Email
+            form#edit-email-form(action='/admin/editEmail', method='POST')
+                input(type="hidden", name="username", id="edit-email-username-input", hidden)
+                div.field
+                    label.label(for='email-input') Email
+                    div.control
+                        input#email-input.input(type='text', name='email')
+                button#save-email-btn.button.is-primary(type='submit') Save
+        button.modal-close.is-large(aria-label='close') X
 
+    //- modal for adding user
     .modal#add-user-modal
         .modal-background
         .modal-content.box
@@ -38,6 +62,12 @@ block content
                     label.label(for='password-input') Password
                     div.control
                         input#password-input.input(type='text', name='password')
+
+                div.field
+                    label.label(for='email-input') Email
+                    div.control
+                        input#email-input.input(type='text', name='email')
+
                 button#save-user-btn.button.is-primary(type='submit') Save
         button.modal-close.is-large(aria-label='close') X
 
@@ -62,7 +92,7 @@ block my_scripts
             const $addUserModal = $('#add-user-modal');
             const $addUserForm = $('#add-user-form');
             const $usernameInput = $('#username-input');
-    
+
             $addUserBtn.click(() => {
                 $addUserModal.addClass('is-active');
                 $usernameInput.focus();
@@ -78,10 +108,34 @@ block my_scripts
                 }
             });
 
+            const $editEmailButton = $('.my--edit-email');
+            const $editEmailModal = $('#edit-email-modal');
+            const $editEmailForm = $('#edit-email-form');
+            const $emailInput = $('#email-input');
+            const $saveEmailBtn = $('#save-email-btn');
+            const $editEmailTitle = $('#editEmailTitle');
 
+            
             $(document).keydown((event) => {
                 if (event.keyCode === 27) {
                     $addUserModal.removeClass('is-active');
+                    $editEmailModal.removeClass('is-active');
                 }
+            });
+
+            $editEmailModal.find('.modal-close').click(() => {
+                $editEmailModal.removeClass('is-active');
+            });
+
+            $editEmailButton.click((event) => {
+                const username = $(event.target).closest('tr').find('td').eq(0).text();
+                const email = $(event.target).closest('tr').find('td').eq(2).text();
+
+                $editEmailModal.addClass('is-active');
+                $emailInput.val(email);
+                $editEmailTitle.text(`Edit Email for ${username}`);
+                $emailInput.focus();
+
+                $("#edit-email-username-input").val(username);
             });
         });
