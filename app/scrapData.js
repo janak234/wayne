@@ -166,6 +166,87 @@ class DataBaseIO {
         date.setMilliseconds(0);
         return date;
     }
+
+    isValidEmail(email) {
+        const emailRegex = /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/;
+        return emailRegex.test(email);
+    }
+
+    // get keywords for a user
+    async getUserAlerts() {
+
+        const usersWithAlerts = await this.prisma.appUser.findMany({
+            select: {
+                email: true,
+                username: true,
+                alerts: {
+                    select: {
+                        text: true
+                    }
+                }
+            }
+        });
+
+        // users with alert list
+        const result = usersWithAlerts.filter(user => this.isValidEmail(user.email)).map(user => {
+            return {
+                email: user.email,
+                name: user.username,
+                alerts: user.alerts.map(alert => alert.text)
+            }
+        })
+
+        return result;
+    }
+
+    // returns alert for a user if any for a given date
+    async getUserActiveAlerts(date) {
+        const userAlerts = await this.getUserAlerts();
+
+        const userActiveAlerts = [];
+
+        for(const userAlert of userAlerts){
+            const _alerts = userAlert.alerts;
+            const activeAlerts = [];
+            for (const alert of _alerts) {
+                const result = await this.prisma.court.findMany({
+                    where: {
+                        date: this.resetTimeToDate(date),
+                        OR: [
+                            {
+                                civilListing: {
+                                    some: {
+                                        matterTitle: {
+                                            contains: alert,
+                                        }
+                                    },
+                                },
+                            },
+                            {
+                                criminalListing: {
+                                    some: {
+                                        name: {
+                                            contains: alert,
+                                        }
+                                    },
+                                },
+                            },
+                        ],
+                    },
+                })
+
+                if (result.length > 0) {
+                    activeAlerts.push(alert);
+                }
+            }
+            userActiveAlerts.push({
+                email: userAlert.email,
+                name: userAlert.name,
+                alerts: activeAlerts
+            });
+        }
+        return userActiveAlerts;
+    }
 }
 
 class TermsAndConditionPage {

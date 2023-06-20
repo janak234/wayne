@@ -5,6 +5,7 @@ const bodyParser = require('body-parser');
 const cron = require('node-cron');
 const cookieParser = require('cookie-parser');
 const session = require('express-session');
+const {sendEmail} = require('./app/sendEmail');
 
 const { getDataFromCourtWebsite, DataBaseIO } = require('./app/scrapData');
 const { createAdmin, router: authRoutes, requireAdminAuth, requireUserAuth } = require('./app/auth');
@@ -26,6 +27,15 @@ app.use(session({
 	resave: true,
 	saveUninitialized: true
 }));
+
+app.get("/hello", (req, res) => {
+	res.send('Hello World!');
+});	
+
+app.post('/sendTestMail', (req, res) => {
+	sendEmail();
+	res.send('Sending Mail Please Wait');
+});
 
 app.use("/auth", authRoutes);
 
@@ -58,6 +68,16 @@ cron.schedule(process.env.CRON_SCHEDULE, () => {
 			console.log("saved data");
 		});
 	} catch (err) {
+		console.error(err);
+	}
+});
+
+// schedule email sending
+cron.schedule(process.env.EMAIL_CRON_SCHEDULE, () => {
+	console.log('Running email cron job ');
+	try {
+		sendEmail();
+	}catch(err){
 		console.error(err);
 	}
 });

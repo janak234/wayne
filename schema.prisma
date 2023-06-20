@@ -15,19 +15,21 @@ model Admin {
 }
 
 model AppUser {
-  id        Int     @id @default(autoincrement())
-  username  String  @unique
-  email     String  @default("")
+  id        Int       @id @default(autoincrement())
+  username  String    @unique
+  email     String    @default("")
   password  String
-  createdAt DateTime @default(now())
+  createdAt DateTime  @default(now())
+  alerts    Alert[]
 }
 
 model Alert {
-  id        Int      @id @default(autoincrement())
+  id        Int       @id @default(autoincrement())
   text      String
-  isActive  Boolean  @default(true)
+  isActive  Boolean   @default(true)
+  user      AppUser   @relation(fields: [username], references: [username])
   username  String
-  createdAt DateTime @default(now())
+  createdAt DateTime  @default(now())
 }
 
 model Court {
