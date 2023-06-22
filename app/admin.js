@@ -61,6 +61,26 @@ router.post('/editEmail', async (req, res) => {
 	}
 });
 
+// edit password of user
+router.post('/editPassword', async (req, res) => {
+	try {
+		const { username, password } = req.body;
+
+		console.log(username, password);
+
+		await prisma.appUser.update({
+			where: {username: username},
+			data: {password: password},
+		});
+
+		res.redirect('/admin/users');
+
+	} catch (err) {
+		const error = "Error Editing Password";
+		res.redirect('/admin/users?error=' + encodeURIComponent(error));
+	}
+});
+
 // delete user
 router.post('/deleteUser/:id', async (req, res) => {
 	const { id } = req.params;

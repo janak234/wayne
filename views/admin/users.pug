@@ -26,10 +26,18 @@ block content
                         form(id=`delete-form-${user.id}`, action=`/admin/deleteUser/${user.id}`, method='POST')
                             input(type='hidden', name='_method', value='DELETE')
                             input(type="hidden", name="username", value=`${user.username}`)
+
+                            //- edit password button
+                            button.mx-1.button.is-info.is-small.my--edit-password(type='button') 
+                                span.icon
+                                    i.fa.fa-key
                             
+                            //- edit email button
                             button.mx-1.button.is-info.is-small.my--edit-email(type='button') 
                                 span.icon
                                     i.fa.fa-envelope
+
+                            //- delete button
                             button.mx-1.button.is-danger.is-small(type='button', onclick=`confirmDelete(${user.id})`) 
                                 span.icon
                                     i.fa.fa-trash
@@ -42,10 +50,24 @@ block content
             form#edit-email-form(action='/admin/editEmail', method='POST')
                 input(type="hidden", name="username", id="edit-email-username-input", hidden)
                 div.field
-                    label.label(for='email-input') Email
+                    label.label(for='edit-email-input') Email
                     div.control
-                        input#email-input.input(type='text', name='email')
+                        input#edit-email-input.input(type='text', name='email')
                 button#save-email-btn.button.is-primary(type='submit') Save
+        button.modal-close.is-large(aria-label='close') X
+
+    //- modal for editing password
+    .modal#edit-password-modal
+        .modal-background
+        .modal-content.box
+            h1#editPasswordTitle Edit Password
+            form#edit-password-form(action='/admin/editPassword', method='POST')
+                input(type="hidden", name="username", id="edit-password-username-input", hidden)
+                div.field
+                    label.label(for='edit-password-input') Password
+                    div.control
+                        input#edit-password-input.input(type='text', name='password')
+                button#save-password-btn.button.is-primary(type='submit') Save
         button.modal-close.is-large(aria-label='close') X
 
     //- modal for adding user
@@ -111,17 +133,9 @@ block my_scripts
             const $editEmailButton = $('.my--edit-email');
             const $editEmailModal = $('#edit-email-modal');
             const $editEmailForm = $('#edit-email-form');
-            const $emailInput = $('#email-input');
+            const $emailInput = $('#edit-email-input');
             const $saveEmailBtn = $('#save-email-btn');
             const $editEmailTitle = $('#editEmailTitle');
-
-            
-            $(document).keydown((event) => {
-                if (event.keyCode === 27) {
-                    $addUserModal.removeClass('is-active');
-                    $editEmailModal.removeClass('is-active');
-                }
-            });
 
             $editEmailModal.find('.modal-close').click(() => {
                 $editEmailModal.removeClass('is-active');
@@ -137,5 +151,36 @@ block my_scripts
                 $emailInput.focus();
 
                 $("#edit-email-username-input").val(username);
+            });
+
+            const $editPasswordButton = $('.my--edit-password');
+            const $editPasswordModal = $('#edit-password-modal');
+            const $editPasswordForm = $('#edit-password-form');
+            const $passwordInput = $('#edit-password-input');
+            const $savePasswordBtn = $('#save-password-btn');
+            const $editPasswordTitle = $('#editPasswordTitle');
+
+            $editPasswordModal.find('.modal-close').click(() => {
+                $editPasswordModal.removeClass('is-active');
+            });
+
+            $editPasswordButton.click((event) => {
+                const username = $(event.target).closest('tr').find('td').eq(0).text();
+                const password = $(event.target).closest('tr').find('td').eq(1).text();
+
+                $editPasswordModal.addClass('is-active');
+                $passwordInput.val(password);
+                $editPasswordTitle.text(`Edit Password for ${username}`);
+                $passwordInput.focus();
+
+                $("#edit-password-username-input").val(username);
+            });
+
+            $(document).keydown((event) => {
+                if (event.keyCode === 27) {
+                    $addUserModal.removeClass('is-active');
+                    $editEmailModal.removeClass('is-active');
+                    $editPasswordModal.removeClass('is-active');
+                }
             });
         });
