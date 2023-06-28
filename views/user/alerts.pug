@@ -20,8 +20,22 @@ block content
         tbody
             each alert in alerts
                 tr
-                    td= alert.text
+                    td(id=`alert-${alert.id}`)= alert.text
                     td.has-text-right
-                        form(action=`/user/deleteAlert/${alert.id}`, method="post")
+                        form(action=`/user/deleteAlert/${alert.id}`, method="post", id=`delete-form-${alert.id}`)
                             input(type="hidden", name="_method", value="delete")
-                            button.button.is-danger.is-small(type="submit") Delete
+                            button.button.is-danger.is-small(type="button", onclick=`confirmDelete(${alert.id})`) Delete
+
+block my_scripts
+    // jQuery Code
+    script.
+        // delete confirmation
+        function confirmDelete(id) {
+            let alerttext = $(`td#alert-${id}`).text();
+            console.log(alerttext,id);
+            
+            let confirmDelete = confirm(`Are you sure you want to delete [${alerttext}]?`);
+            if (confirmDelete) {
+                $(`#delete-form-${id}`).submit();
+            }
+        }
