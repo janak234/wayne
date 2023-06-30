@@ -1,6 +1,11 @@
 extends layout
 
 block content
+    if error
+        div.notification.is-danger
+            button.delete
+                span &times;
+            p= error
 
     // Add Alert
     div.control
@@ -10,6 +15,13 @@ block content
                     input.input(type="text", name="text", placeholder="Enter alert text")
                 .column.m-1
                     button.button.is-primary(type="submit") Add Alert
+
+        form(action="/user/alerts/upload", method="post", enctype="multipart/form-data")
+            .field.is-grouped
+                .control
+                    input(type="file", name="file")
+                .control
+                    button.button.is-info(type="submit") Upload Alerts
 
     table.table.is-fullwidth
         thead
@@ -33,9 +45,15 @@ block my_scripts
         function confirmDelete(id) {
             let alerttext = $(`td#alert-${id}`).text();
             console.log(alerttext,id);
-            
+
             let confirmDelete = confirm(`Are you sure you want to delete [${alerttext}]?`);
             if (confirmDelete) {
                 $(`#delete-form-${id}`).submit();
             }
         }
+
+        $(document).ready(()=>{
+            $('.notification .delete').click(function() {
+                $(this).parent().hide();
+            });
+        });

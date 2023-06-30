@@ -1,6 +1,10 @@
 const express = require('express');
 const { getDataFromCourtWebsite, DataBaseIO } = require('./scrapData');
 const { PrismaClient } = require('@prisma/client')
+const XLSX = require('xlsx');
+const multer = require('multer');
+const fs = require('fs');
+const upload = multer({ dest: 'uploads/' });
 
 const prisma = new PrismaClient();
 
@@ -68,12 +72,19 @@ var counter = 3;
 router.get('/alerts', async (req, res) => {
 	try {
 		const username = req.session.user.username;
+		const error = req.query.error;
 
 		const alerts = await prisma.alert.findMany({
 			where: {
 				username: username
 			}
 		});
+
+		if(error) {
+			res.render('user/alerts', { alerts, error });
+			return;
+		}
+
 		res.render('user/alerts', { alerts });
 	} catch (error) {
 		console.log(error);
@@ -98,6 +109,49 @@ router.post('/alerts', async (req, res) => {
 	} catch (err) {
 		console.error(err);
 		res.status(500).send("Something is wrong on our side :(");
+	}
+});
+
+// upload alerts from excel file
+router.post("/alerts/upload",upload.single('file'), async (req, res) => {
+	try {
+		// Read the uploaded file
+		const workbook = XLSX.readFile(req.file.path);
+
+		// Get the first sheet
+		const sheetName = workbook.SheetNames[0];
+		const sheet = workbook.Sheets[sheetName];
+	  
+		// Get the range of cells with data
+		const range = XLSX.utils.decode_range(sheet['!ref']);
+	  
+		// Loop through each row and print the value of the first (and only) column
+		const data = [];
+		for (let i = range.s.r; i <= range.e.r; i++) {
+		  const cellAddress = XLSX.utils.encode_cell({ r: i, c: 0 });
+		  const cell = sheet[cellAddress];
+		  data.push(cell.v);
+		}
+	  
+		data.shift();
+		console.log(data);
+
+		if(data.length > 0) {
+			await prisma.alert.createMany({
+				data: data.map(text => {
+					return {
+						username: req.session.user.username,
+						text: text,
+					}
+				}),
+			});
+		}
+
+		res.redirect('/user/alerts');
+	} catch (err) {
+		console.log(err);
+		const error = "Invalid File Uploaded";
+		res.redirect('/user/alerts?error='+encodeURIComponent(error));
 	}
 });
 

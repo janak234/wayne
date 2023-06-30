@@ -4,3 +4,7 @@ play-data.json
 screenshots/*
 .env
 nginx
+
+.vscode
+play**
+uploads
