@@ -14,6 +14,9 @@ const sendMail = async (date, email, name, alerts) => {
         auth: {
             user: emailId,
             pass: emailPasswd
+        },
+        tls:{
+            rejectUnauthorized:false
         }
     });
 
