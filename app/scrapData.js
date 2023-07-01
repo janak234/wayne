@@ -4,6 +4,9 @@ const { PrismaClient } = require('@prisma/client')
 
 const prismaClient = new PrismaClient();
 
+const ACTION_DATE = new Date("2000-01-01");
+
+
 class DataBaseIO {
 
     constructor() {
@@ -14,6 +17,20 @@ class DataBaseIO {
         const data = await this.prisma.court.findMany({
             where: {
                 date: this.resetTimeToDate(date),
+            },
+            include: {
+                civilListing: true,
+                criminalListing: true,
+            }
+        });
+        return data;
+    }
+
+    // read data for action
+    async readDataForAction(){
+        const data = await this.prisma.court.findMany({
+            where: {
+                date: this.resetTimeToDate(ACTION_DATE),
             },
             include: {
                 civilListing: true,
@@ -103,13 +120,13 @@ class DataBaseIO {
         })
     }
 
-    async upsertCourt(courtName, buildingName, address) {
+    async upsertCourt(courtName, buildingName, address, storeDate=new Date()) {
         // Try to find a court in the database with the same name and building name
         let existingCourt = await this.prisma.court.findFirst({
             where: {
                 name: courtName,
                 buildingName: buildingName,
-                date: this.resetTimeToDate(new Date()),
+                date: this.resetTimeToDate(storeDate),
             }
         })
 
@@ -120,7 +137,7 @@ class DataBaseIO {
                     name: courtName,
                     buildingName: buildingName,
                     address: address,
-                    date: this.resetTimeToDate(new Date()),
+                    date: this.resetTimeToDate(storeDate),
                 },
             })
         }
@@ -128,11 +145,11 @@ class DataBaseIO {
         return existingCourt
     }
 
-    async writeData(data) {
+    async writeData(data, storeDate=new Date()) {
         // Delete all existing courts and listings for today
         await this.prisma.court.deleteMany({
             where: {
-                date: this.resetTimeToDate(new Date()),
+                date: this.resetTimeToDate(storeDate),
             }
         });
 
@@ -148,7 +165,7 @@ class DataBaseIO {
                     const criminalListing = building.criminalListing;
 
                     // Upsert the court into the database
-                    const court = await this.upsertCourt(courtName, buildingName, address);
+                    const court = await this.upsertCourt(courtName, buildingName, address, storeDate);
 
                     await this.addCivilRecords(civilListing, court);
 
@@ -205,7 +222,7 @@ class DataBaseIO {
 
         const userActiveAlerts = [];
 
-        for(const userAlert of userAlerts){
+        for (const userAlert of userAlerts) {
             const _alerts = userAlert.alerts;
             const activeAlerts = [];
             for (const alert of _alerts) {
@@ -387,9 +404,18 @@ class CourtListingPage {
             console.log(error);
         }
     }
+
+    async doJobAction() {
+        try {
+            var data = await this.getListing();
+            await this.databaseIO.writeData(data,ACTION_DATE);
+        } catch (error) {
+            console.log(error);
+        }
+    }
 }
 
-async function getDataFromCourtWebsite() {
+async function _getDataFromCourtWebsite(isAction = false) {
     // Launch a new browser instance
     var browser;
 
@@ -416,10 +442,26 @@ async function getDataFromCourtWebsite() {
     await page.waitForNavigation();
 
     const courtListingPage = new CourtListingPage(page);
-    await courtListingPage.doJob();
 
+    console.log("started scrapping");
+
+    if(isAction){
+        await courtListingPage.doJobAction();
+    }else{
+        await courtListingPage.doJob();
+    }
+
+    console.log("scrapping completed, data saved");
     // Close the browser instance
     await browser.close();
 }
 
-module.exports = { getDataFromCourtWebsite, DataBaseIO };
+async function getDataFromCourtWebsite() {
+    await _getDataFromCourtWebsite();
+}
+
+async function getDataFromCourtWebsiteAction() {
+    await _getDataFromCourtWebsite(isAction = true);
+}
+
+module.exports = { getDataFromCourtWebsite, DataBaseIO, getDataFromCourtWebsiteAction };

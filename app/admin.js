@@ -1,6 +1,7 @@
 const { PrismaClient } = require('@prisma/client')
 const express = require('express');
-const { getDataFromCourtWebsite, DataBaseIO } = require('./scrapData');
+const { getDataFromCourtWebsiteAction, DataBaseIO } = require('./scrapData');
+const { sendEmail } = require('./sendEmail');
 
 const router = express.Router();
 const prisma = new PrismaClient();
@@ -89,18 +90,19 @@ router.post('/deleteUser/:id', async (req, res) => {
 	console.log(id, username);
 
 	try {
-		await prisma.appUser.delete({
-			where: {
-				id: parseInt(id),
-			},
-		});
-
 		// delete all alerts of this user
 		await prisma.alert.deleteMany({
 			where: {
 				username: username,
 			}
 		});
+
+		await prisma.appUser.delete({
+			where: {
+				id: parseInt(id),
+			},
+		});
+
 		res.redirect('/admin/users');
 	} catch (err) {
 		console.error(err);
@@ -150,6 +152,42 @@ router.post("/", async (req, res) => {
 		}
 	} catch (err) {
 		res.status(400).send("Please provide date");
+	}
+});
+
+router.get("/action", async (req, res) => {
+	try {
+		const { msg } = req.query;
+		const today = new Date();
+		const data = await (new DataBaseIO()).readDataForAction();
+
+		res.render('admin/action', { data, date: getDateStr(today), today: getDateStr(today), msg });
+	} catch (err) {
+		console.log(err);
+		res.status(500).send("Something is wrong on our side :(");
+	}
+});
+
+router.post("/action", async (req, res) => {
+	try{
+		getDataFromCourtWebsiteAction();
+		res.redirect('/admin/action?msg='+encodeURIComponent("We Are Scrapping Data, Please Refresh Page after 5 minutes."));
+	}catch(err){
+		console.log(err);
+	}
+});
+
+router.post("/sendEmailAction", async (req, res) => {
+	try {
+		const { date } = req.body
+		const myDate = new Date(date)
+		console.log(myDate);
+
+		sendEmail(myDate);
+
+		res.redirect('/admin/action?msg='+encodeURIComponent("Sending Email..."));
+	} catch (error) {
+		console.log(error);
 	}
 });
 

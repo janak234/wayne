@@ -39,18 +39,22 @@ const sendMail = async (date, email, name, alerts) => {
     });
 }
 
-const sendEmail = async () => {
+const getTomorrow = () => {
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    return tomorrow;
+}
+
+const sendEmail = async (forDate = getTomorrow()) => {
     try {
         const userActiveAlerts = await (new DataBaseIO()).getUserActiveAlerts(new Date());
         console.log(userActiveAlerts);
-        const tomorrow = new Date();
-        tomorrow.setDate(tomorrow.getDate() + 1);
 
         for (let user of userActiveAlerts) {
             const { email, name, alerts } = user;
             if (alerts.length > 0) {
                 const alertStr = alerts.join(', ');
-                await sendMail(tomorrow, email, name, alertStr);
+                await sendMail(forDate, email, name, alertStr);
             }
         }
     } catch (error) {

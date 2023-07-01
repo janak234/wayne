@@ -20,6 +20,7 @@ html
 					#nav-menu.navbar-menu
 						.navbar-end
 							a.navbar-item(href='/admin') Home
+							a.navbar-item(href='/admin/action') Action
 							a.navbar-item(href='/admin/users') Users
 							a.navbar-item(onclick='event.preventDefault(); document.getElementById("logout-form").submit();') Logout
 							form#logout-form(action='/auth/logout' method='POST' style='display: none;')
