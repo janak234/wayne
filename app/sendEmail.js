@@ -1,6 +1,6 @@
 const nodemailer = require('nodemailer');
 const pug = require('pug');
-const { DataBaseIO } = require('./scrapData');
+const { DataBaseIO, ACTION_DATE } = require('./scrapData');
 
 const sendMail = async (date, email, name, alerts) => {
     const emailId = process.env.EMAIL_ID;
@@ -62,4 +62,21 @@ const sendEmail = async (forDate = getTomorrow()) => {
     }
 }
 
-module.exports = { sendEmail };
+const sendEmailAction = async (forDate = getTomorrow()) => {
+    try {
+        const userActiveAlerts = await (new DataBaseIO()).getUserActiveAlerts(ACTION_DATE);
+        console.log(userActiveAlerts);
+
+        for (let user of userActiveAlerts) {
+            const { email, name, alerts } = user;
+            if (alerts.length > 0) {
+                const alertStr = alerts.join(', ');
+                await sendMail(forDate, email, name, alertStr);
+            }
+        }
+    } catch (error) {
+        console.log(error);
+    }
+};
+
+module.exports = { sendEmail, sendEmailAction };

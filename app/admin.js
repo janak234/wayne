@@ -1,7 +1,7 @@
 const { PrismaClient } = require('@prisma/client')
 const express = require('express');
 const { getDataFromCourtWebsiteAction, DataBaseIO } = require('./scrapData');
-const { sendEmail } = require('./sendEmail');
+const { sendEmail, sendEmailAction } = require('./sendEmail');
 
 const router = express.Router();
 const prisma = new PrismaClient();
@@ -183,7 +183,7 @@ router.post("/sendEmailAction", async (req, res) => {
 		const myDate = new Date(date)
 		console.log(myDate);
 
-		sendEmail(myDate);
+		sendEmailAction(myDate);
 
 		res.redirect('/admin/action?msg='+encodeURIComponent("Sending Email..."));
 	} catch (error) {
