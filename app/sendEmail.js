@@ -2,7 +2,7 @@ const nodemailer = require('nodemailer');
 const pug = require('pug');
 const { DataBaseIO, ACTION_DATE } = require('./scrapData');
 
-const sendMail = async (date, email, name, alerts) => {
+const sendMail = async (date, email, name, alerts, civilAlerts=[], criminalAlerts=[]) => {
     const emailId = process.env.EMAIL_ID;
     const emailPasswd = process.env.EMAIL_PASSWD;
 
@@ -15,15 +15,21 @@ const sendMail = async (date, email, name, alerts) => {
             user: emailId,
             pass: emailPasswd
         },
-        tls:{
-            rejectUnauthorized:false
+        tls: {
+            rejectUnauthorized: false
         }
     });
 
     // get date in dd/mm/yyyy format
     const myDate = (date).toLocaleDateString('en-GB');
 
-    const emailBody = pug.compileFile("app/sendEmail.template.pug")({ username: name, keywordList: alerts, date: myDate });
+    const emailBody = pug.compileFile("app/sendEmail.template.pug")({ 
+        username: name, 
+        keywordList: alerts, 
+        date: myDate,
+        civilAlerts, 
+        criminalAlerts
+    });
 
     // setup email data with unicode symbols
     let mailOptions = {
@@ -50,14 +56,14 @@ const getTomorrow = () => {
 
 const sendEmail = async (forDate = getTomorrow()) => {
     try {
-        const userActiveAlerts = await (new DataBaseIO()).getUserActiveAlerts(new Date());
+        const { userActiveAlerts,civilAlerts, criminalAlerts } = await (new DataBaseIO()).getUserActiveAlerts(new Date());
         console.log(userActiveAlerts);
 
         for (let user of userActiveAlerts) {
             const { email, name, alerts } = user;
             if (alerts.length > 0) {
                 const alertStr = alerts.join(', ');
-                await sendMail(forDate, email, name, alertStr);
+                await sendMail(forDate, email, name, alertStr, civilAlerts, criminalAlerts);
             }
         }
     } catch (error) {
@@ -67,14 +73,14 @@ const sendEmail = async (forDate = getTomorrow()) => {
 
 const sendEmailAction = async (forDate = getTomorrow()) => {
     try {
-        const userActiveAlerts = await (new DataBaseIO()).getUserActiveAlerts(ACTION_DATE);
+        const { userActiveAlerts, civilAlerts, criminalAlerts } = await (new DataBaseIO()).getUserActiveAlerts(ACTION_DATE);
         console.log(userActiveAlerts);
 
         for (let user of userActiveAlerts) {
             const { email, name, alerts } = user;
             if (alerts.length > 0) {
                 const alertStr = alerts.join(', ');
-                await sendMail(forDate, email, name, alertStr);
+                await sendMail(forDate, email, name, alertStr, civilAlerts, criminalAlerts);
             }
         }
     } catch (error) {

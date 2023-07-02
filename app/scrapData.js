@@ -221,12 +221,27 @@ class DataBaseIO {
         const userAlerts = await this.getUserAlerts();
 
         const userActiveAlerts = [];
+        const criminalAlerts = [];
+        const civilAlerts = [];
 
         for (const userAlert of userAlerts) {
             const _alerts = userAlert.alerts;
             const activeAlerts = [];
             for (const alert of _alerts) {
                 const result = await this.prisma.court.findMany({
+                    select:{
+                        name:true,
+                        civilListing:{
+                            select:{
+                                matterTitle:true
+                            }
+                        },
+                        criminalListing:{
+                            select:{
+                                name:true
+                            }
+                        }
+                    },
                     where: {
                         date: this.resetTimeToDate(date),
                         OR: [
@@ -254,6 +269,19 @@ class DataBaseIO {
 
                 if (result.length > 0) {
                     activeAlerts.push(alert);
+
+                    result.forEach((court) => {
+                        court.civilListing.forEach((civil) => {
+                            if(civil.matterTitle.includes(alert)){
+                                civilAlerts.push(civil.matterTitle);
+                            }
+                        });
+                        court.criminalListing.forEach((criminal) => {
+                            if(criminal.name.includes(alert)){
+                                criminalAlerts.push(criminal.name);
+                            }
+                        });
+                    });
                 }
             }
             userActiveAlerts.push({
@@ -262,7 +290,11 @@ class DataBaseIO {
                 alerts: activeAlerts
             });
         }
-        return userActiveAlerts;
+        return {
+            userActiveAlerts,
+            civilAlerts,
+            criminalAlerts
+        };
     }
 }
 
