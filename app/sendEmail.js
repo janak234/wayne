@@ -56,11 +56,10 @@ const getTomorrow = () => {
 
 const sendEmail = async (forDate = getTomorrow()) => {
     try {
-        const { userActiveAlerts,civilAlerts, criminalAlerts } = await (new DataBaseIO()).getUserActiveAlerts(new Date());
-        console.log(userActiveAlerts);
+        const { userActiveAlerts } = await (new DataBaseIO()).getUserActiveAlerts(new Date());
 
         for (let user of userActiveAlerts) {
-            const { email, name, alerts } = user;
+            const { email, name, alerts, civilAlerts, criminalAlerts } = user;
             if (alerts.length > 0) {
                 const alertStr = alerts.join(', ');
                 await sendMail(forDate, email, name, alertStr, civilAlerts, criminalAlerts);
@@ -73,11 +72,10 @@ const sendEmail = async (forDate = getTomorrow()) => {
 
 const sendEmailAction = async (forDate = getTomorrow()) => {
     try {
-        const { userActiveAlerts, civilAlerts, criminalAlerts } = await (new DataBaseIO()).getUserActiveAlerts(ACTION_DATE);
-        console.log(userActiveAlerts);
+        const { userActiveAlerts} = await (new DataBaseIO()).getUserActiveAlerts(ACTION_DATE);
 
         for (let user of userActiveAlerts) {
-            const { email, name, alerts } = user;
+            const { email, name, alerts, civilAlerts, criminalAlerts } = user;
             if (alerts.length > 0) {
                 const alertStr = alerts.join(', ');
                 await sendMail(forDate, email, name, alertStr, civilAlerts, criminalAlerts);

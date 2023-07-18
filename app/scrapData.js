@@ -220,13 +220,22 @@ class DataBaseIO {
     async getUserActiveAlerts(date) {
         const userAlerts = await this.getUserAlerts();
 
-        const userActiveAlerts = [];
-        const criminalAlerts = [];
-        const civilAlerts = [];
+        /** 
+         * { 
+         *      username, useremail, 
+         *      listOfActiveAlerts[string], 
+         *      criminalAlerts[string], 
+         *      civilAlerts[string] 
+         * } 
+         */
+        const userActiveAlerts = [];     
 
         for (const userAlert of userAlerts) {
             const _alerts = userAlert.alerts;
             const activeAlerts = [];
+            const criminalAlerts = [];
+            const civilAlerts = [];
+
             for (const alert of _alerts) {
                 const result = await this.prisma.court.findMany({
                     select:{
@@ -287,13 +296,13 @@ class DataBaseIO {
             userActiveAlerts.push({
                 email: userAlert.email,
                 name: userAlert.name,
-                alerts: activeAlerts
+                alerts: activeAlerts,
+                civilAlerts: civilAlerts,
+                criminalAlerts: criminalAlerts
             });
         }
         return {
-            userActiveAlerts,
-            civilAlerts,
-            criminalAlerts
+            userActiveAlerts
         };
     }
 }
