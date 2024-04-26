@@ -11,6 +11,26 @@
 ```sh 
 eval "$(ssh-agent -s)"
 ssh-add /path/to/ssh_key_file
+
+- ssh wayne@43.250.141.98
+- Wayne@987
+
+- ssh root@43.250.141.98
+- 9CEM#9fqRj6582yT
+```
+
+```
+CPANEL ADDRESS
+trusafe.au/cpanel
+
+USERNAME
+trusafea
+
+PASSWORD
+410L]5NLi*Hl7
+
+CPANEL HOSTNAME
+s02ce.syd5.hostingplatform.net.au:2083
 ```
 
 # host mysql
